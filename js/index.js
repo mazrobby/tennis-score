@@ -497,12 +497,15 @@ $(document).ready(function () {
       // after getting room id, we broadcast our config & state
       emitMatchConfig();
       emitMatchState();
+
+      setTimeout(() => {
+        window.location.reload()
+      }, 500);
     });
 
     $("#modal-new-game").modal("hide")
     $("input[name='player_1']").val("")
     $("input[name='player_2']").val("")
-
   });
 
   $("#join").click(function () {
