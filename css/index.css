@@ -1,0 +1,35 @@
+.centeredTable th, .centeredTable tr  {
+	text-align: center;
+}
+#scoreScreen  {
+	text-align: center;
+}
+.container {
+	margin-top: 2em;
+    overflow-x:hidden;
+    width:100%;
+    position:relative;
+}
+.hidden {
+	display: none;
+}
+.btn {
+	margin: 1px;
+}
+
+select.form-control {
+  min-width: 70px;
+}
+
+#admin_p1name, #admin_p2name {
+	min-width: 200px;
+}
+
+.bold{
+	font-weight: bold;
+}
+
+/* we should implement bootstrap 4 */
+.mb-2 {
+  margin-bottom: 10px;
+}
