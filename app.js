@@ -12,8 +12,10 @@ const io = new Server(server, {
 
 const port = 8080;
 
+var ip = require("ip");
+
 server.listen(port);
-console.log(`Listening on :${port}`);
+console.log(`Listening on ${ip.address()}:${port}`);
 
 // routing
 app.get("/admin", function (req, res) {

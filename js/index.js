@@ -1,5 +1,9 @@
 $(document).ready(function () {
-  const socketAddress = "http://localhost:8080";
+
+  var host = window.location.host; 
+  console.log("Host : ", host)
+
+  const socketAddress = "http://" + host;
   console.log(`initializing socket connection`);
   socket = io.connect(socketAddress);
   console.log(`socket connected`);
