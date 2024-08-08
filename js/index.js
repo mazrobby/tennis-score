@@ -6,7 +6,6 @@ $(document).ready(function () {
 
   var match_id;
 
-  
   socket.on("connect", function (e) {
 
     socket.on("server_update_room_list", function (data) {
