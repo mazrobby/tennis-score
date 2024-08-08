@@ -89,16 +89,19 @@
             $("#result").html("")
             if (data.length > 0) {
                 data.forEach((element, index) => {
-                    let players = element.players
 
-                    if (element?.config != undefined) {
-                        let playerConfig = JSON.parse(element?.config)
-                        if (playerConfig != undefined && playerConfig.players[0] != "Player 1" && playerConfig.players[1] != "Player 2") {
-                            players = playerConfig.players
+                    if (element.players != undefined || element.players.length != 0) {
+                        let players = element.players
+
+                        if (element?.config != undefined) {
+                            let playerConfig = JSON.parse(element?.config)
+                            if (playerConfig != undefined && playerConfig.players[0] != "Player 1" && playerConfig.players[1] != "Player 2") {
+                                players = playerConfig.players
+                            }
                         }
-                    }
 
-                    $('#result').append('<tr><td>' + (index + 1) + '</td><td>' + players[0] + ' vs ' + players[1] + '</td><td><a href="/control-room?room=' + element.room_id + ' " class="btn btn-warning btn-full">Control</a></td></tr>');
+                        $('#result').append('<tr><td>' + (index + 1) + '</td><td>' + players[0] + ' vs ' + players[1] + '</td><td><a href="/control-room?room=' + element.room_id + ' " class="btn btn-warning btn-full">Control</a></td></tr>');   
+                    }
                 });
             }
         }
