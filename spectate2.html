@@ -92,10 +92,12 @@
             <img src="Logo.png" style="width: 200px;height: 200px;object-fit: contain;" alt="">
         </div>
         <div class="text-center col-md-5 col-sm-5 col-lg-5">
-            <h5>PREVIOUS SETS</h5>
-            <div class="text-center" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-                <table class="table-borderless" id="previousSets">
-                </table>
+            <div id="prevSetContainer" style="display: none;">
+                <h5>PREVIOUS SETS</h5>
+                <div class="text-center" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+                    <table class="table-borderless" id="previousSets">
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -438,6 +440,7 @@
             p2html += "</tr>"
 
             if (matchState.currentSet > 0) {
+                $("#prevSetContainer").show()
                 $(tableId).html(p1html + p2html)
             }
         }
