@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+app.use(express.static('assets'));
+
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -45,6 +47,17 @@ app.get("/spectate", function (req, res) {
   }
 
   res.sendFile(__dirname + "/spectate.html");
+})
+
+app.get("/spectate-new", function (req, res) {
+  let room_id = req.query.room
+  console.log("query : ", req.query)
+  
+  if (room_id == undefined) {
+    res.redirect('/')
+  }
+
+  res.sendFile(__dirname + "/spectate2.html");
 })
 
 app.get("/", function (req, res) {
