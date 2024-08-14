@@ -473,6 +473,8 @@ $(document).ready(function () {
   /* methods for websockets */
 
   $("#host").click(function () {
+    $(this).attr("disabled", "disabled")
+
     console.log(`initializing socket connection`);
     socket = io.connect(socketAddress);
     console.log(`socket connected`);

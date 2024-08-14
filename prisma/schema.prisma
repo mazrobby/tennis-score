@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+model JadwalPertandingan {
+  id          Int      @id @default(autoincrement())
+  player_satu String
+  player_dua  String
+  tanggal     DateTime
+  jam         String?
+  room        Int
+  is_deleted  Int
+  data_json   String?
+  games_json  String?
+}
+
+model HasilPertandingan {
+  id                     Int     @id @default(autoincrement())
+  jadwal_pertandingan_id Int?
+  data_json              String?
+  games_json             String?
+  is_deleted             Int
+}

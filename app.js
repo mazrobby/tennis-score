@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
-
-app.use(express.static('assets'));
+app.use(express.json())
 
 const http = require("http");
 const server = http.createServer(app);
@@ -15,6 +14,7 @@ const io = new Server(server, {
 const port = 8080;
 
 var ip = require("ip");
+const { JadwalIndex, JadwalSave, JadwalHapus, JadwalView, SimpanHasilPertandingan, JadwalDetail } = require("./controllers/JadwalController");
 
 server.listen(port);
 console.log(`Listening on ${ip.address()}:${port}`);
@@ -24,6 +24,25 @@ app.get("/admin", function (req, res) {
   res.sendFile(__dirname + "/control-room-index.html");
 });
 
+app.get("/admin/jadwal", function (req, res) {
+  res.sendFile(__dirname + "/jadwal.html");
+})
+
+app.get("/jadwal", function (req, res) {
+  res.sendFile(__dirname + "/jadwal-view.html");
+})
+
+app.get("/hasil-pertandingan", function (req, res) {
+  res.sendFile(__dirname + "/hasil-pertandingan.html");
+})
+
+app.get("/api/jadwal", JadwalIndex)
+app.post("/api/jadwal/detail", JadwalDetail)
+app.get("/api/jadwal-view", JadwalView)
+app.post("/api/jadwal", JadwalSave)
+app.post("/api/jadwal/hapus", JadwalHapus)
+app.post("/api/simpan-hasil-pertandingan", SimpanHasilPertandingan)
+
 app.get("/control-room", function (req, res) {
   let room_id = req.query.room
 
@@ -31,10 +50,6 @@ app.get("/control-room", function (req, res) {
     res.redirect("/admin")
   }
 
-  res.sendFile(__dirname + "/index.html");
-});
-
-app.get("/test", function (req, res) {
   res.sendFile(__dirname + "/index.html");
 });
 
@@ -66,6 +81,7 @@ app.get("/", function (req, res) {
 
 app.use("/js", express.static("js"));
 app.use("/css", express.static("css"));
+app.use("/assets", express.static('assets'));
 
 // users which are currently listening
 const listeners = {};
@@ -93,7 +109,7 @@ io.sockets.on("connection", function (socket) {
     let obj = {
       room_id: room_count,
       players,
-      data : rooms[room_count]
+      data: rooms[room_count]
     }
     roomList.push(obj)
     socket.emit("roomListener", roomList)

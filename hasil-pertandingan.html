@@ -11,6 +11,7 @@
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <!-- will only load if it's being hosted by nodejs' -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     
@@ -60,6 +61,7 @@
     </style>
 </head>
 <body>
+    <h3 class="text-center">Hasil Pertandingan</h3>
     <h1 class="header">COURT NO.XX</h1>
     <img src="/assets/tenis-ball.png" style="width: 260px;object-fit: contain;position: absolute;bottom: 0px; right: 0px;" alt="">
 
@@ -105,6 +107,7 @@
 </body>
 
 <script>
+    const BASE_URL = "http://localhost:8080"
     $(document).ready(function(){
         const queryString = location.search;
         const urlParams = new URLSearchParams(queryString);
@@ -113,64 +116,6 @@
 
         let room = urlParams.get("room")
         console.log("room_id : ", room)
-
-        var host = window.location.host;
-        console.log("Host : ", host)
-
-        const socketAddress = "http://" + host;
-
-        console.log(`initializing socket connection`);
-        socket = io.connect(socketAddress);
-        console.log(`socket connected`);
-
-        socket.on("connect", function (e) {
-
-            socket.on("server_update_room_list", function (data) {
-                console.log("server_update_room_list : ", data)
-            })
-        })
-
-        function connectToMatch(match_id_param) {
-
-            // when the match config needs to be updated
-            socket.on("server_updates_config", function (config) {
-                matchConfig = JSON.parse(config);
-                drawConfig();
-            });
-
-            // when the match state needs to be updated
-            socket.on("server_updates_state", function (state) {
-                matchState = JSON.parse(state);
-                drawScores();
-            });
-
-            // on connect, emite that we are listening the room specified
-            socket.on("connect", function () {
-                socket.emit("addlistener", match_id_param);
-                $("#ws_status").html(`Spectating Match # ${match_id_param}<br>`);
-                $(".header").html(`COURT NO.${match_id_param}<br>`);
-                $(".connectionless_only").hide();
-                $(".host_only").hide();
-            });
-
-            match_id = match_id_param
-        }
-
-        // hide the Websocket menu if it's not loaded = the web app is static
-        try {
-            if (io === undefined);
-            console.log(`the client is running with sockets`);
-
-            // connect to existing room if a `?room=` search is given
-            const urlParams = new URLSearchParams(window.location.search);
-            const room = parseInt(urlParams.get("room"));
-            if (!isNaN(room)) {
-                connectToMatch(room);
-            }
-        } catch (e) {
-            console.log(`the client is running without sockets`);
-            $(".ws_only").hide();
-        }
 
         var pointTrans;
         var matchState;
@@ -208,16 +153,56 @@
         for (
             matchState.tieBreakerScore = [];
             matchState.tieBreakerScore.push([0, 0]) <= 5;
-
         );
 
-        restoreAppBackup();
+        // restoreAppBackup();
 
-        drawConfig();
+        // drawConfig();
+
+        function connectToMatch(match_id_param) {
+            axios.post(BASE_URL + "/api/jadwal/detail", {
+                id: match_id_param
+            }).then((res) => {
+                console.log("res", res)
+
+                let data_json = JSON.parse(res.data.data_json)
+
+                // when the match config needs to be updated
+                matchConfig = data_json.config;
+                drawConfig();
+
+                // when the match state needs to be updated
+                matchState = data_json.state;
+                drawScores();
+
+                $("#ws_status").html(`Spectating Match # ${match_id_param}<br>`);
+                $(".header").html(`COURT NO.${match_id_param}<br>`);
+            }).catch((err) => {
+                console.log("err", err)
+            })
+
+            match_id = match_id_param
+        }
+
+        // hide the Websocket menu if it's not loaded = the web app is static
+        try {
+            if (io === undefined);
+            console.log(`the client is running with sockets`);
+
+            // connect to existing room if a `?room=` search is given
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = parseInt(urlParams.get("room"));
+            if (!isNaN(room)) {
+                connectToMatch(room);
+            }
+        } catch (e) {
+            console.log(`the client is running without sockets`);
+            $(".ws_only").hide();
+        }
 
         function backupApp() {
-            window.localStorage.setItem(matchConfig_key, JSON.stringify(matchConfig));
-            window.localStorage.setItem(matchState_key, JSON.stringify(matchState));
+            // window.localStorage.setItem(matchConfig_key, JSON.stringify(matchConfig));
+            // window.localStorage.setItem(matchState_key, JSON.stringify(matchState));
         }
 
         function restoreAppBackup() {
@@ -375,10 +360,6 @@
             drawConfig();
             drawScores();
             adminPanelToggle();
-            // emit the match config update
-            emitMatchConfig();
-            // emit the match state update
-            emitMatchState();
         });
 
         function backup() {
@@ -544,9 +525,6 @@
             if (matchState.latestEvent.level <= 1)
                 matchState.latestEvent.text =
                     matchConfig.players[winningPlayer] + " scored the point";
-
-            // transmit the match state
-            emitMatchState();
         }
 
         function playerWinsGame(winningPlayer) {
@@ -606,71 +584,6 @@
 
         /* methods for websockets */
 
-        $("#host").click(function () {
-            console.log(`initializing socket connection`);
-            socket = io.connect(socketAddress);
-            console.log(`socket connected`);
-
-            let player1_name = $("input[name='player_1']").val()
-            let player2_name = $("input[name='player_2']").val()
-
-            let players = [player1_name, player2_name]
-
-            // on connection to server, emit an addhost message
-            socket.on("connect", function () {
-                socket.emit("addhost", players);
-                $(".connectionless_only").hide();
-                console.log(`host added`);
-            });
-
-            // it gets the id of the room it is hosting and emits config & state
-            socket.on("basic_info", function (id) {
-                match_id = id;
-                $("#ws_status").html(`Broadcasting Match # ${match_id}<br>`);
-
-                // after getting room id, we broadcast our config & state
-                emitMatchConfig();
-                emitMatchState();
-                emitRoomInfo(match_id);
-            });
-
-            $("#modal-new-game").modal("hide")
-            $("input[name='player_1']").val("")
-            $("input[name='player_2']").val("")
-        });
-
-        $("#join").click(function () {
-            match_id = parseInt(prompt("Which Match #?"));
-
-            connectToMatch(match_id);
-        });
-
-        function emitMatchState() {
-            if (socket != undefined) {
-                socket.emit("client_updates_state", match_id, JSON.stringify(matchState));
-            }
-        }
-
-        function emitMatchConfig() {
-            if (socket != undefined) {
-                socket.emit(
-                    "client_updates_config",
-                    match_id,
-                    JSON.stringify(matchConfig)
-                );
-            }
-        }
-
-        function emitRoomInfo(match_id) {
-            let player1_name = $("input[name='player_1']").val()
-            let player2_name = $("input[name='player_2']").val()
-
-            $("#admin_p1nameInput").val(player1_name)
-            $("#admin_p2nameInput").val(player2_name)
-            $("#applyBtn").trigger("click")
-        }
-
-
         /* End Of websockets */
 
         function fadeHtml(object, html) {
@@ -682,27 +595,6 @@
                     .fadeIn("fast");
             }
         }
-
-        // function connectToMatch(match_id) {
-
-        //     // when the match config needs to be updated
-        //     socket.on("server_updates_config", function (config) {
-        //         matchConfig = JSON.parse(config);
-        //         drawConfig();
-        //     });
-
-        //     // when the match state needs to be updated
-        //     socket.on("server_updates_state", function (state) {
-        //         matchState = JSON.parse(state);
-        //         drawScores();
-        //     });
-
-        //     // on connect, emite that we are listening the room specified
-        //     socket.on("connect", function () {
-        //         socket.emit("addlistener", match_id);
-        //         $("#ws_status").html(`Spectating Match # ${match_id}<br>`);
-        //     });
-        // }
     })
 </script>
 </html>
